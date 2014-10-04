@@ -161,6 +161,25 @@ class StopWordsArabic(StopWords):
         for word in nltk.tokenize.wordpunct_tokenize(stripped_input):
             words.append(s.stem(word))
         return words
+    
+class StopWordsPersian(StopWords):
+    """
+    Arabic segmentation
+    """
+    def __init__(self, language='fa'):
+        # force ar languahe code
+        super(StopWordsPersian, self).__init__(language='fa')
+
+    def remove_punctuation(self, content):
+        return content
+
+    def candiate_words(self, stripped_input):
+        import hazm
+        s = hazm.Stemmer()
+        words = []
+        for word in hazm.word_tokenize(stripped_input):
+            words.append(s.stem(word))
+        return words
 
 
 class StopWordsKorean(StopWords):
