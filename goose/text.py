@@ -164,13 +164,18 @@ class StopWordsArabic(StopWords):
     
 class StopWordsPersian(StopWords):
     """
-    Arabic segmentation
+    Persian segmentation
     """
     def __init__(self, language='fa'):
         # force ar languahe code
         super(StopWordsPersian, self).__init__(language='fa')
 
     def remove_punctuation(self, content):
+        from hazm import Normalizer
+        normalizer = Normalizer()
+        content = normalizer.normalize(content);
+        content = content.translate(dict.fromkeys(map(ord, u'،؟٪؛«»'), None))
+        content = content.translate(dict.fromkeys(map(ord, string.punctuation), None))
         return content
 
     def candiate_words(self, stripped_input):

@@ -32,6 +32,8 @@ KNOWN_IMG_DOM_NAMES = [
     "cnn_strylccimg300cntr",
     "big_photo",
     "ap-smallphoto-a",
+    "imgarticle",
+    "newsimageholder"
 ]
 
 
@@ -66,8 +68,8 @@ class UpgradedImageIExtractor(ImageExtractor):
         self.images_min_bytes = 4000
 
         # the webpage url that we're extracting content from
-        self.target_url = article.final_url
-
+        # self.target_url = article.final_url it causes problems because url is setting after intializing this class
+        
         # stores a hash of our url for
         # reference and image processing
         self.link_hash = article.link_hash
@@ -77,15 +79,17 @@ class UpgradedImageIExtractor(ImageExtractor):
             ".html|.gif|.ico|button|twitter.jpg|facebook.jpg|ap_buy_photo"
             "|digg.jpg|digg.png|delicious.png|facebook.png|reddit.jpg"
             "|doubleclick|diggthis|diggThis|adserver|/ads/|ec.atdmt.com"
-            "|mediaplex.com|adsatt|view.atdmt"
+            "|mediaplex.com|adsatt|view.atdmt|googleplus.png|twitter.png"
+            "|/advertise/|/adv/"
         )
 
     def get_best_image(self, doc, topNode):
+        self.set_target_url()
         image = self.check_known_elements()
         if image:
             return image
-
-        image = self.check_large_images(topNode, 0, 0)
+        
+        image = self.check_large_images(doc, 0, 0)
         if image:
             return image
 
@@ -93,6 +97,8 @@ class UpgradedImageIExtractor(ImageExtractor):
         if image:
             return image
         return Image()
+    
+    
 
     def check_meta_tag(self):
         # check link tag
@@ -104,6 +110,9 @@ class UpgradedImageIExtractor(ImageExtractor):
         image = self.check_opengraph_tag()
         if image:
             return image
+
+    def set_target_url(self):
+        self.target_url = self.article.final_url
 
     def check_large_images(self, node, parent_depth_level, sibling_depth_level):
         """\
@@ -280,6 +289,8 @@ class UpgradedImageIExtractor(ImageExtractor):
         if images:
             filtered_images = self.filter_bad_names(images)
         if filtered_images:
+#            for image in filtered_images : 
+#                print etree.tostring(image)
             good_images = self.get_images_bytesize_match(filtered_images)
         return good_images
 
@@ -332,7 +343,8 @@ class UpgradedImageIExtractor(ImageExtractor):
         meta = self.parser.getElementsByTag(node, tag='meta', attr='property', value='og:image')
         for item in meta:
             src = self.parser.getAttribute(item, attr='content')
-            if src:
+            fetchedimage = ImageUtils.fetch(None,src)
+            if src and fetchedimage:
                 return self.get_image(item, src, extraction_type='opengraph')
         return None
 
