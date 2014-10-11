@@ -26,6 +26,7 @@ from urlparse import urlparse, urljoin
 from goose.utils import StringSplitter
 from goose.utils import StringReplacement
 from goose.utils import ReplaceSequence
+from goose.images.extractors import UpgradedImageIExtractor
 
 MOTLEY_REPLACEMENT = StringReplacement("&#65533;", "")
 ESCAPED_FRAGMENT_REPLACEMENT = StringReplacement(u"#!", u"?_escaped_fragment_=")
@@ -58,6 +59,8 @@ class ContentExtractor(object):
 
         # stopwords class
         self.stopwords_class = config.stopwords_class
+        
+        self.image_extractor = UpgradedImageIExtractor(self.config, self.article);
 
     def get_title(self):
         """\
@@ -239,20 +242,21 @@ class ContentExtractor(object):
         cnt = 0
         i = 0
         parent_nodes = []
-        nodes_with_text = []
+        candidate_nodes = []
 
         for node in nodes_to_check:
             text_node = self.parser.getText(node)
             word_stats = self.stopwords_class(language=self.language).get_stopword_count(text_node)
             high_link_density = self.is_highlink_density(node)
-            if word_stats.get_stopword_count() > 2 and not high_link_density:
-                nodes_with_text.append(node)
+            image_box = self.is_image_box(doc,node)
+            if (word_stats.get_stopword_count() > 2 and not high_link_density) or image_box:
+                candidate_nodes.append(node)
 
-        nodes_number = len(nodes_with_text)
+        nodes_number = len(candidate_nodes)
         negative_scoring = 0
         bottom_negativescore_nodes = float(nodes_number) * 0.25
 
-        for node in nodes_with_text:
+        for node in candidate_nodes:
             boost_score = float(0)
             # boost
             if(self.is_boostable(node)):
@@ -314,8 +318,8 @@ class ContentExtractor(object):
         """
         para = "p"
         steps_away = 0
-        minimum_stopword_count = 5
-        max_stepsaway_from_node = 3
+        minimum_stopword_count = 3
+        max_stepsaway_from_node = 5
 
         nodes = self.walk_siblings(node)
         for current_node in nodes:
@@ -326,7 +330,8 @@ class ContentExtractor(object):
                     return False
                 paraText = self.parser.getText(current_node)
                 word_stats = self.stopwords_class(language=self.language).get_stopword_count(paraText)
-                if word_stats.get_stopword_count() > minimum_stopword_count:
+                image_box = self.is_image_box(None, node)
+                if (word_stats.get_stopword_count() > minimum_stopword_count) or image_box:
                     return True
                 steps_away += 1
         return False
@@ -460,6 +465,28 @@ class ContentExtractor(object):
         return False
         # return True if score > 1.0 else False
 
+    def is_image_box(self, doc, e, mark = True):
+        """\
+        check if an important image is in it
+        """
+        image_box_attr = self.parser.getAttribute(e, "image_box")
+        if image_box_attr is 1 :
+            return True
+        elif image_box_attr is 2 :
+            return False
+        image = self.image_extractor.check_large_images(e, 0, 0, False)
+        try :
+            if image.src is not "" :
+                if mark :
+                    self.parser.setAttribute(e, "image_box", '1')
+                return True
+            else :
+                if mark :
+                    self.parser.setAttribute(e, "image_box", '2')
+                return False
+        except :
+            return False
+
     def get_score(self, node):
         """\
         returns the gravityScore as an integer from this node
@@ -478,7 +505,7 @@ class ContentExtractor(object):
         on like paragraphs and tables
         """
         nodes_to_check = []
-        for tag in ['p', 'pre', 'td']:
+        for tag in ['p', 'pre', 'td', 'span']:
             items = self.parser.getElementsByTag(doc, tag=tag)
             nodes_to_check += items
         return nodes_to_check

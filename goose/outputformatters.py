@@ -22,7 +22,7 @@ limitations under the License.
 """
 from HTMLParser import HTMLParser
 from goose.text import innerTrim
-
+from copy import deepcopy
 
 class OutputFormatter(object):
 
@@ -58,13 +58,30 @@ class OutputFormatter(object):
         return self.top_node
 
     def get_formatted_text(self):
-        self.top_node = self.article.top_node
+        self.top_node = deepcopy(self.article.top_node)
         self.remove_negativescores_nodes()
         self.links_to_text()
         self.add_newline_to_br()
         self.replace_with_text()
         self.remove_fewwords_paragraphs()
         return self.convert_to_text()
+
+    def get_formatted_html(self):
+        self.top_node = self.article.top_node
+        self.remove_negativescores_nodes()
+        self.links_to_text()
+#        self.add_newline_to_br()
+        self.replace_with_text()
+        self.remove_fewwords_paragraphs(True)
+        return self.convert_to_text()
+    
+    def is_image_box(self,e):
+        image_box_attr = self.parser.getAttribute(e, "image_box")
+        if image_box_attr is '1' :
+            return True
+        elif image_box_attr is '2' :
+            return False
+        return False
 
     def convert_to_text(self):
         txts = []
@@ -110,7 +127,7 @@ class OutputFormatter(object):
         """
         self.parser.stripTags(self.get_top_node(), 'b', 'strong', 'i', 'br', 'sup')
 
-    def remove_fewwords_paragraphs(self):
+    def remove_fewwords_paragraphs(self, except_image = False):
         """\
         remove paragraphs that have less than x number of words,
         would indicate that it's some sort of link
@@ -121,9 +138,15 @@ class OutputFormatter(object):
             tag = self.parser.getTag(el)
             text = self.parser.getText(el)
             stop_words = self.stopwords_class(language=self.get_language()).get_stopword_count(text)
-            if (tag != 'br' or text != '\\r') and stop_words.get_stopword_count() < 3 \
+            condition = (tag != 'br' or text != '\\r') and stop_words.get_stopword_count() < 3 \
                 and len(self.parser.getElementsByTag(el, tag='object')) == 0 \
-                and len(self.parser.getElementsByTag(el, tag='embed')) == 0:
+                and len(self.parser.getElementsByTag(el, tag='embed')) == 0
+            if except_image :
+                image_box = self.is_image_box(el)
+                condition = condition and not (image_box or tag == 'img')
+            if condition:
+                print '*********'
+                print self.parser.outerHtml(el)
                 self.parser.remove(el)
             # TODO
             # check if it is in the right place

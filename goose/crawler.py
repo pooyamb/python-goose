@@ -123,12 +123,15 @@ class Crawler(object):
             # image handeling
             if self.config.enable_image_fetching:
                 self.get_image()
-
+                
             # post cleanup
             self.article.top_node = self.extractor.post_cleanup()
 
             # clean_text
             self.article.cleaned_text = self.formatter.get_formatted_text()
+            
+            # clean_top_node
+            self.article.cleaned_text = self.formatter.get_formatted_html()
 
         # cleanup tmp file
         self.relase_resources()

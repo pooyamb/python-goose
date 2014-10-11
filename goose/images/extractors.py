@@ -80,7 +80,7 @@ class UpgradedImageIExtractor(ImageExtractor):
             "|digg.jpg|digg.png|delicious.png|facebook.png|reddit.jpg"
             "|doubleclick|diggthis|diggThis|adserver|/ads/|ec.atdmt.com"
             "|mediaplex.com|adsatt|view.atdmt|googleplus.png|twitter.png"
-            "|/advertise/|/adv/"
+            "|/advertise/|/adv/|/popup/"
         )
 
     def get_best_image(self, doc, topNode):
@@ -114,7 +114,7 @@ class UpgradedImageIExtractor(ImageExtractor):
     def set_target_url(self):
         self.target_url = self.article.final_url
 
-    def check_large_images(self, node, parent_depth_level, sibling_depth_level):
+    def check_large_images(self, node, parent_depth_level, sibling_depth_level, check_other_nodes = True):
         """\
         although slow the best way to determine the best image is to download
         them and check the actual dimensions of the image when on disk
@@ -143,11 +143,11 @@ class UpgradedImageIExtractor(ImageExtractor):
                 main_image.confidence_score = 100 / len(scored_images) \
                                     if len(scored_images) > 0 else 0
                 return main_image
-
-        depth_obj = self.get_depth_level(node, parent_depth_level, sibling_depth_level)
-        if depth_obj:
-            return self.check_large_images(depth_obj.node,
-                            depth_obj.parent_depth, depth_obj.sibling_depth)
+        if check_other_nodes :
+            depth_obj = self.get_depth_level(node, parent_depth_level, sibling_depth_level)
+            if depth_obj:
+                return self.check_large_images(depth_obj.node,
+                                depth_obj.parent_depth, depth_obj.sibling_depth)
 
         return None
 
@@ -182,7 +182,7 @@ class UpgradedImageIExtractor(ImageExtractor):
         initial_area = float(0.0)
         total_score = float(0.0)
         cnt = float(1.0)
-        MIN_WIDTH = 50
+        MIN_WIDTH = 40
         for image in images[:30]:
             src = self.parser.getAttribute(image, attr='src')
             src = self.build_image_path(src)
@@ -289,8 +289,6 @@ class UpgradedImageIExtractor(ImageExtractor):
         if images:
             filtered_images = self.filter_bad_names(images)
         if filtered_images:
-#            for image in filtered_images : 
-#                print etree.tostring(image)
             good_images = self.get_images_bytesize_match(filtered_images)
         return good_images
 
