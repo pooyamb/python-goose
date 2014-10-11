@@ -62,7 +62,6 @@ class OutputFormatter(object):
         self.remove_negativescores_nodes()
         self.links_to_text()
         self.replace_with_text()
-        pass
     
     def get_formatted_text(self):
         self.add_newline_to_br()
@@ -71,6 +70,7 @@ class OutputFormatter(object):
 
     def get_formatted_html(self):
         self.remove_fewwords_paragraphs(True)
+        self.remove_point_attrs()
         return self.top_node
     
     def is_image_box(self,e):
@@ -80,6 +80,12 @@ class OutputFormatter(object):
         elif image_box_attr is '2' :
             return False
         return False
+
+    def remove_point_attrs(self):
+        gravity_items = self.parser.css_select(self.top_node, "*[gravityScore]")
+        for item in gravity_items :
+            item.delAttribute('gravityScore')
+            item.delAttribute('gravitynodes')
 
     def convert_to_text(self):
         txts = []
@@ -143,8 +149,6 @@ class OutputFormatter(object):
                 image_box = self.is_image_box(el)
                 condition = condition and not (image_box or tag == 'img')
             if condition:
-                print '*********'
-                print self.parser.outerHtml(el)
                 self.parser.remove(el)
             # TODO
             # check if it is in the right place
