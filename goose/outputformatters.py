@@ -57,23 +57,21 @@ class OutputFormatter(object):
     def get_top_node(self):
         return self.top_node
 
-    def get_formatted_text(self):
-        self.top_node = deepcopy(self.article.top_node)
+    def do_formating(self):
+        self.top_node = self.article.top_node
         self.remove_negativescores_nodes()
         self.links_to_text()
-        self.add_newline_to_br()
         self.replace_with_text()
+        pass
+    
+    def get_formatted_text(self):
+        self.add_newline_to_br()
         self.remove_fewwords_paragraphs()
         return self.convert_to_text()
 
     def get_formatted_html(self):
-        self.top_node = self.article.top_node
-        self.remove_negativescores_nodes()
-        self.links_to_text()
-#        self.add_newline_to_br()
-        self.replace_with_text()
         self.remove_fewwords_paragraphs(True)
-        return self.convert_to_text()
+        return self.top_node
     
     def is_image_box(self,e):
         image_box_attr = self.parser.getAttribute(e, "image_box")
