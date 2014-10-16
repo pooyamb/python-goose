@@ -155,8 +155,10 @@ class OutputFormatter(object):
         for el in all_nodes:
             tag = self.parser.getTag(el)
             text = self.parser.getText(el)
-            stop_words = self.stopwords_class(language=self.get_language()).get_stopword_count(text)
-            condition = (tag != 'br' or text != '\\r') and stop_words.get_stopword_count() < 1 \
+            stop_word_class = self.stopwords_class(language=self.get_language())
+            stop_words = stop_word_class.get_stopword_count(text)
+            min_stop_word_point = stop_word_class.min_stop_word_point
+            condition = (tag != 'br' or text != '\\r') and stop_words.get_stopword_count() < min_stop_word_point \
                 and len(self.parser.getElementsByTag(el, tag='object')) == 0 \
                 and len(self.parser.getElementsByTag(el, tag='embed')) == 0
             if except_image :
@@ -170,7 +172,6 @@ class OutputFormatter(object):
                 trimmed = self.parser.getText(el)
                 if trimmed.startswith("(") and trimmed.endswith(")"):
                     self.parser.remove(el)
-
 
 class StandardOutputFormatter(OutputFormatter):
     pass

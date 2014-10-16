@@ -89,7 +89,7 @@ class StopWords(object):
     PUNCTUATION = re.compile("[^\\p{Ll}\\p{Lu}\\p{Lt}\\p{Lo}\\p{Nd}\\p{Pc}\\s]")
     TRANS_TABLE = string.maketrans('', '')
     _cached_stop_words = {}
-
+    min_stop_word_point = 3
     def __init__(self, language='en'):
         # TODO replace 'x' with class
         # to generate dynamic path for file to load
@@ -166,6 +166,7 @@ class StopWordsPersian(StopWords):
     """
     Persian segmentation
     """
+    min_stop_word_point = 1
     def __init__(self, language='fa'):
         # force ar languahe code
         super(StopWordsPersian, self).__init__(language='fa')
