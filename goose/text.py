@@ -179,18 +179,35 @@ class StopWordsPersian(StopWords):
         return content
 
     def candiate_words(self, stripped_input):
-        import hazm
-        s = hazm.Stemmer()
-        newfile = open('new.txt','a+')
+        from hazm import Stemmer,word_tokenize
+        s = Stemmer()
         words = []
-        for word in hazm.word_tokenize(stripped_input):
-            newfile.write(word.encode('utf8'))
-            newfile.write('\n')
+        for word in word_tokenize(stripped_input):
             words.append(s.stem(word))
+            words.append(word)
             
-        newfile.write('\n\n"""\n\n')
         return words
 
+
+    def get_stopword_count(self, content):
+        if not content:
+            return WordStats()
+        ws = WordStats()
+        stripped_input = self.remove_punctuation(content)
+        candiate_words = self.candiate_words(stripped_input)
+        overlapping_stopwords = []
+        c = 0
+        for w in candiate_words:
+            c += 1
+            if w.lower() in self.STOP_WORDS:
+                overlapping_stopwords.append(w.lower())
+
+        ws.set_word_count(c / 2)
+        stop_word_counter = round(len(overlapping_stopwords) / 1.2)
+        stop_word_counter = int(stop_word_counter)
+        ws.set_stopword_count(stop_word_counter)
+        ws.set_stop_words(overlapping_stopwords)
+        return ws
 
 class StopWordsKorean(StopWords):
     """
