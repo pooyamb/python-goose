@@ -128,6 +128,7 @@ class UpgradedImageIExtractor(ImageExtractor):
         5. Score images based on different factors like height/width
            and possibly things like color density
         """
+        self.set_target_url()
         good_images = self.get_image_candidates(node)
 
         if good_images:
