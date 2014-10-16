@@ -181,9 +181,14 @@ class StopWordsPersian(StopWords):
     def candiate_words(self, stripped_input):
         import hazm
         s = hazm.Stemmer()
+        newfile = open('new.txt','a+')
         words = []
         for word in hazm.word_tokenize(stripped_input):
+            newfile.write(word.encode('utf8'))
+            newfile.write('\n')
             words.append(s.stem(word))
+            
+        newfile.write('\n\n"""\n\n')
         return words
 
 

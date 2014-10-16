@@ -22,7 +22,6 @@ limitations under the License.
 """
 from HTMLParser import HTMLParser
 from goose.text import innerTrim
-from copy import deepcopy
 
 class OutputFormatter(object):
 
@@ -82,10 +81,25 @@ class OutputFormatter(object):
         return False
 
     def remove_point_attrs(self):
-        gravity_items = self.parser.css_select(self.top_node, "*[gravityScore]")
-        for item in gravity_items :
-            item.delAttribute('gravityScore')
-            item.delAttribute('gravitynodes')
+        # Get nodes with gravity_score attribute
+        items = self.parser.css_select(self.top_node, "*[gravity_score]")
+        for item in items :
+            self.parser.delAttribute(item,'gravity_score')
+            self.parser.delAttribute(item,'gravity_nodes')
+            
+        # Get nodes with image_box attribute
+        items = self.parser.css_select(self.top_node, "*[image_box]")
+        for item in items :
+            self.parser.delAttribute(item,'image_box')
+        
+        
+        items = self.parser.css_select(self.top_node, "*")
+        for item in items :
+            self.parser.delAttribute(item,'id')
+            self.parser.delAttribute(item,'class')
+            self.parser.delAttribute(item,'style')
+            self.parser.delAttribute(item,'dir')
+            
 
     def convert_to_text(self):
         txts = []
@@ -114,9 +128,9 @@ class OutputFormatter(object):
         that have a negative gravity score,
         let's give em the boot
         """
-        gravity_items = self.parser.css_select(self.top_node, "*[gravityScore]")
+        gravity_items = self.parser.css_select(self.top_node, "*[gravity_score]")
         for item in gravity_items:
-            score = self.parser.getAttribute(item, 'gravityScore')
+            score = self.parser.getAttribute(item, 'gravity_score')
             score = int(score, 0)
             if score < 1:
                 item.getparent().remove(item)
@@ -142,7 +156,7 @@ class OutputFormatter(object):
             tag = self.parser.getTag(el)
             text = self.parser.getText(el)
             stop_words = self.stopwords_class(language=self.get_language()).get_stopword_count(text)
-            condition = (tag != 'br' or text != '\\r') and stop_words.get_stopword_count() < 3 \
+            condition = (tag != 'br' or text != '\\r') and stop_words.get_stopword_count() < 1 \
                 and len(self.parser.getElementsByTag(el, tag='object')) == 0 \
                 and len(self.parser.getElementsByTag(el, tag='embed')) == 0
             if except_image :

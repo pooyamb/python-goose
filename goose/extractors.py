@@ -413,29 +413,29 @@ class ContentExtractor(object):
 
     def update_score(self, node, addToScore):
         """\
-        adds a score to the gravityScore Attribute we put on divs
+        adds a score to the gravity_score Attribute we put on divs
         we'll get the current score then add the score
         we're passing in to the current
         """
         current_score = 0
-        score_string = self.parser.getAttribute(node, 'gravityScore')
+        score_string = self.parser.getAttribute(node, 'gravity_score')
         if score_string:
             current_score = int(score_string)
 
         new_score = current_score + addToScore
-        self.parser.setAttribute(node, "gravityScore", str(new_score))
+        self.parser.setAttribute(node, "gravity_score", str(new_score))
 
     def update_node_count(self, node, add_to_count):
         """\
         stores how many decent nodes are under a parent node
         """
         current_score = 0
-        count_string = self.parser.getAttribute(node, 'gravityNodes')
+        count_string = self.parser.getAttribute(node, 'gravity_nodes')
         if count_string:
             current_score = int(count_string)
 
         new_score = current_score + add_to_count
-        self.parser.setAttribute(node, "gravityNodes", str(new_score))
+        self.parser.setAttribute(node, "gravity_nodes", str(new_score))
 
     def is_highlink_density(self, e):
         """\
@@ -489,12 +489,12 @@ class ContentExtractor(object):
 
     def get_score(self, node):
         """\
-        returns the gravityScore as an integer from this node
+        returns the gravity_score as an integer from this node
         """
         return self.get_node_gravity_score(node) or 0
 
     def get_node_gravity_score(self, node):
-        grvScoreString = self.parser.getAttribute(node, 'gravityScore')
+        grvScoreString = self.parser.getAttribute(node, 'gravity_score')
         if not grvScoreString:
             return None
         return int(grvScoreString)
