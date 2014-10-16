@@ -79,7 +79,10 @@ class Article(object):
         # stores the RAW HTML
         # straight from the network connection
         self.raw_html = u""
-
+        
+        # stores top node's html
+        self.top_nod_raw_html = u""
+        
         # the lxml Document object
         self.doc = None
 
